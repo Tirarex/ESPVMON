@@ -1,4 +1,5 @@
 
+
 const char* settingsFile = "/Settings.json";
 
 struct Settings {
@@ -11,6 +12,7 @@ struct Settings {
 };
 
 Settings deviceSettings;
+
 
 
 bool InitSPIFFS() {

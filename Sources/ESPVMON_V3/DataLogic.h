@@ -35,9 +35,9 @@ void FetchIna() {
   if (power_W < power_peak_low) power_peak_low = power_W;
 }
 
+#ifndef MINIMALMODE
 void SetInaSettings() {
   //Я прекрасно знаю что это можно просто перевести число в hex значение, но это для возможной совместимости с другими микросхемами
-
   switch (deviceSettings.TimeAVG) {
     case 0:
       ina.setAveraging(INA226_AVG_X1);
@@ -131,7 +131,7 @@ void SetInaSettings() {
       break;
   }
 }
-
+#endif
 
 //Can be modified to calculate capacity in Both ways, charge/discharge, to make battery gauge like device
 void calculateCapacity() {                            

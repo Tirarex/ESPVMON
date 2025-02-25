@@ -1,11 +1,27 @@
+
+
+//Minimal mode, only OLED Display and value measurement
+#define MINIMALMODE
+
+
+#ifdef MINIMALMODE
+#define MaxCurrent 0.8  //Mac current 0.8A
+#define ShuntValue 0.1  //0.1Ω
+#endif
+
+
+
+
+
+#ifndef MINIMALMODE  //no wifi in minimal mode
 //Web server and updates
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266HTTPUpdateServer.h>
 #include <ArduinoJson.h>
 
-//Wifi credentials and connection manager
 #include <WiFiManager.h>
+#endif
 
 //Devices
 #include <Wire.h>
@@ -13,16 +29,24 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
+#ifndef MINIMALMODE
 //Settings
 #include <FS.h>           // Filesystem library for SPIFFS
 #include <ArduinoJson.h>  // For JSON parsing and serialization
+#endif
 
 //Sum code
-#include "Settings.h"   // Logic for save and load settings from SPIFFS
+#ifndef MINIMALMODE
+#include "Settings.h"  // Logic for save and load settings from SPIFFS
+#endif
+
 #include "DataLogic.h"  // Ina226 data and settings
 #include "Screen.h"     //All oled0.96 logic and menu screens
-#include "Buttons.h"    //Very basic buttons
-#include "Network.h"    //Wifi, ota, serial things
+
+#ifndef MINIMALMODE
+#include "Buttons.h"  //Very basic buttons
+#include "Network.h"  //Wifi, ota, serial things
+#endif
 
 unsigned long lastUpdateTime = 0;
 
@@ -30,11 +54,13 @@ void setup() {
 
   //Serial output
   Serial.begin(115200);
-
-
   //Display and buttons
   InitDisplay();
-  ShowText("ESPVMON V3");
+  ShowLogo();
+
+
+
+#ifndef MINIMALMODE
   InitButtons();
 
   //Load settings from memory
@@ -56,6 +82,7 @@ void setup() {
   //Wifi initialization
   if (deviceSettings.WfifMode) {
     ShowText(F("Connecting to wifi"));
+
     WiFiManager wifiManager;
     bool WifimanStatus = wifiManager.autoConnect("ESPVMON", "");
     if (!WifimanStatus) {
@@ -74,25 +101,47 @@ void setup() {
     WiFi.mode(WIFI_OFF);
     WiFi.forceSleepBegin();
   }
+#else
+  ShowText("Minimal mode");
+  delay(1000);
+#endif
+
+
+#ifndef MINIMALMODE
 
   //Ina226 initialization
   if (ina.begin()) {
     ShowText(F("Ina226 found"));
     SetInaSettings();
     updateShunt(deviceSettings.ShuntValue, deviceSettings.ShuntCurrent);
-
   } else {
     //May be auto reset will help?
     ShowText(F("Ina226 not found"));
     delay(1000);
   }
 
+
+
+#else
+  //ina.begin(MaxCurrent, ShuntValue);
+  ina.begin();
+  ina.setAveraging(INA226_AVG_X64);
+  ina.setSampleTime(INA226_VBUS, INA226_CONV_588US);
+  ina.setSampleTime(INA226_VSHUNT, INA226_CONV_1100US);
+  updateShunt(MaxCurrent, ShuntValue*300);
+#endif
+
+
+
+
+
+
+#ifndef MINIMALMODE
   //init web server only if we have wifi
   if (deviceSettings.WfifMode) {
     InitServer();
   }
-
-  ShowLogo();
+#endif
 }
 
 
@@ -103,10 +152,10 @@ void loop() {
   //Capacity update timer
   if (millis() - lastUpdateTime >= 1000) {
     calculateCapacity();
-    printSerialData();
     lastUpdateTime = millis();
   }
 
+#ifndef MINIMALMODE
   HandleButtons();
 
   switch (ScreenPage) {
@@ -136,13 +185,9 @@ void loop() {
           }
         }
       }
-
-
       break;
     case 1:  //Capacity Measurements
       CapacityScreen();
-
-
       if (button1State) {
         unsigned long elapsedTime = millis() - button1PressTime;
         if (elapsedTime <= 2000) {
@@ -236,17 +281,14 @@ void loop() {
           SaveSettings();
           ShowAlert(F("Saved"));
         }
-
         //Shunt resistance
         if (ListValue == 0) Shunt_Value = Shunt_Value - 0.000001f;
         if (ListValue == 1) Shunt_Value = Shunt_Value + 0.000001f;
         if (Shunt_Value < 0.0001) Shunt_Value = 0.00010f;
-
         //Shunt current
         if (ListValue == 2) Shunt_Max_Current = Shunt_Max_Current - 1;
         if (ListValue == 3) Shunt_Max_Current = Shunt_Max_Current + 1;
         if (Shunt_Max_Current < 1) Shunt_Max_Current = 1;
-
         updateShunt(Shunt_Value, Shunt_Max_Current);
       }
       //Long press of button go BRRR
@@ -298,34 +340,21 @@ void loop() {
         if (ListValue > 3) ListValue = 1;
       }
       break;
-      /*  case 7:  //Debug
-      display.setTextSize(1);
-      display.setCursor(0, 0);
-      display.clearDisplay();
-      display.println(millis());
-      display.println(button1PressTime);
-      display.println(button2PressTime);
-      display.println(button1State);
-      display.println(button2State);
-      display.println(B1Click);
-      display.println(B2Click);
-      if (button1State) {
-        unsigned long elapsedTime = millis() - button1PressTime;
-        if (elapsedTime <= 2000) {                    
-          int progress = (elapsedTime * 100) / 2000;  
-          drawProgressBar(progress);
-        } else {
-          drawProgressBar(-99);
-        }
-      }
-      display.display();
-      break; */
   }
   ShowConnection = false;
+#else
+  MainScreen();
+  // CapacityScreen();
+#endif
+
+
   display.display();
+
+#ifndef MINIMALMODE
   FlushButtons();
   if (deviceSettings.WfifMode) {
     server.handleClient();
   }
+#endif
   delay(10);  //1ms delay is important for power saving, but we can go more why not?
 }
