@@ -98,7 +98,7 @@ void ShowLogo() {
   display.clearDisplay();
   display.drawBitmap(0, 0, espvmonlogo, 128, 64, 1);
   display.display();
-  delay(1000);
+  delay(300);
 }
 
 //Screen dimming

@@ -1,38 +1,36 @@
-
-
 //Minimal mode, only OLED Display and value measurement
-#define MINIMALMODE
-
+//#define MINIMALMODE
+#define ENABLESCREEN
 
 #ifdef MINIMALMODE
-#define MaxCurrent 0.8  //Mac current 0.8A
-#define ShuntValue 0.1  //0.1Ω
+#define MaxCurrent 20
+#define ShuntValue 0.002
 #endif
 
-
-
-
-
-#ifndef MINIMALMODE  //no wifi in minimal mode
+#ifndef MINIMALMODE
 //Web server and updates
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266HTTPUpdateServer.h>
 #include <ArduinoJson.h>
 
+//Wifi Manager
 #include <WiFiManager.h>
 #endif
 
 //Devices
 #include <Wire.h>
 #include <GyverINA.h>
+
+#ifdef ENABLESCREEN
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#endif
+
 
 #ifndef MINIMALMODE
 //Settings
 #include <FS.h>           // Filesystem library for SPIFFS
-#include <ArduinoJson.h>  // For JSON parsing and serialization
 #endif
 
 //Sum code
@@ -41,7 +39,10 @@
 #endif
 
 #include "DataLogic.h"  // Ina226 data and settings
-#include "Screen.h"     //All oled0.96 logic and menu screens
+
+#ifdef ENABLESCREEN
+#include "Screen.h"  //All oled0.96 logic and menu screens
+#endif
 
 #ifndef MINIMALMODE
 #include "Buttons.h"  //Very basic buttons
@@ -54,11 +55,13 @@ void setup() {
 
   //Serial output
   Serial.begin(115200);
-  //Display and buttons
+ 
+
+#ifdef ENABLESCREEN
+       //Display and buttons
   InitDisplay();
   ShowLogo();
-
-
+#endif
 
 #ifndef MINIMALMODE
   InitButtons();
@@ -102,8 +105,10 @@ void setup() {
     WiFi.forceSleepBegin();
   }
 #else
+#ifdef ENABLESCREEN
   ShowText("Minimal mode");
   delay(1000);
+#endif
 #endif
 
 
@@ -116,25 +121,22 @@ void setup() {
     updateShunt(deviceSettings.ShuntValue, deviceSettings.ShuntCurrent);
   } else {
     //May be auto reset will help?
+
+#ifdef ENABLESCREEN
     ShowText(F("Ina226 not found"));
     delay(1000);
+#endif
   }
 
 
 
 #else
-  //ina.begin(MaxCurrent, ShuntValue);
-  ina.begin();
+  ina.begin(MaxCurrent, ShuntValue);
   ina.setAveraging(INA226_AVG_X64);
   ina.setSampleTime(INA226_VBUS, INA226_CONV_588US);
   ina.setSampleTime(INA226_VSHUNT, INA226_CONV_1100US);
-  updateShunt(MaxCurrent, ShuntValue*300);
+  updateShunt(MaxCurrent, ShuntValue);
 #endif
-
-
-
-
-
 
 #ifndef MINIMALMODE
   //init web server only if we have wifi
@@ -343,12 +345,18 @@ void loop() {
   }
   ShowConnection = false;
 #else
-  MainScreen();
-  // CapacityScreen();
+
+#ifdef ENABLESCREEN
+     MainScreen();
 #endif
 
+ 
+#endif
 
-  display.display();
+#ifdef ENABLESCREEN
+      display.display();
+#endif
+ 
 
 #ifndef MINIMALMODE
   FlushButtons();
@@ -356,5 +364,5 @@ void loop() {
     server.handleClient();
   }
 #endif
-  delay(10);  //1ms delay is important for power saving, but we can go more why not?
+  delay(10);  //10ms delay is important for power saving, but we can go more why not?
 }
