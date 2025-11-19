@@ -1,5 +1,8 @@
 # ESPVMON
 
+![Logo](espvmonlogo.bmp)
+
+
 Compact voltage and current monitoring device built on ESP8266 and ESP32.  
 All source code and enclosure models are available on GitHub.
 
