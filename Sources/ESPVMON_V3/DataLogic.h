@@ -20,6 +20,15 @@ float capacity_Ah = 0.0, capacity_Wh = 0.0;
 unsigned long elapsedMillis, seconds, minutes, hours;
 unsigned long startMillis = 0;
 
+
+void InitIna() {
+  ina.begin(MaxCurrent, ShuntValue);
+  ina.setAveraging(INA226_AVG_X64);
+  ina.setSampleTime(INA226_VBUS, INA226_CONV_588US);
+  ina.setSampleTime(INA226_VSHUNT, INA226_CONV_1100US);
+  updateShunt(MaxCurrent, ShuntValue);
+}
+
 void FetchIna() {
   voltage_V = ina.getVoltage();                     // Voltage (V)
   current_A = ina.getCurrent();                     // Current (A)
@@ -63,8 +72,7 @@ void SetInaSettings() {
     case 7:
       ina.setAveraging(INA226_AVG_X1024);
       break;
-    default:
-      // Обработка исключительных случаев, если они возможны
+    default: 
       ina.setAveraging(INA226_AVG_X1);
       break;
   }
@@ -94,8 +102,7 @@ void SetInaSettings() {
     case 7:
       ina.setSampleTime(INA226_VBUS, INA226_CONV_8244US);
       break;
-    default:
-      // Обработка исключительных случаев, если они возможны
+    default: 
       ina.setSampleTime(INA226_VBUS, INA226_CONV_140US);
       break;
   }
@@ -125,8 +132,7 @@ void SetInaSettings() {
     case 7:
       ina.setSampleTime(INA226_VSHUNT, INA226_CONV_8244US);
       break;
-    default:
-      // Обработка исключительных случаев, если они возможны
+    default: 
       ina.setSampleTime(INA226_VSHUNT, INA226_CONV_140US);
       break;
   }
@@ -134,7 +140,7 @@ void SetInaSettings() {
 #endif
 
 //Can be modified to calculate capacity in Both ways, charge/discharge, to make battery gauge like device
-void calculateCapacity() {                            
+void calculateCapacity() {
   float deltaT = 1.0;                                 // Time step in seconds
   capacity_Ah += (abs(current_A) * deltaT) / 3600.0;  // Update capacity in Ah
   capacity_Wh += (abs(power_W) * deltaT) / 3600.0;    // Update capacity in Wh
@@ -157,8 +163,10 @@ void FlushPeakData() {
   power_peak_low = 9999;
 }
 
-void updateShunt(float newRShunt, float maxCurrent) {
-  float currentLSB = maxCurrent / 32768.0f;
-  uint16_t newCalValue = trunc(0.00512f / (currentLSB * newRShunt));
-  ina.setCalibration(newCalValue);  // Устанавливаем новое значение
+//Direct code from gyverina lib
+void updateShunt(float rShunt, float _i_max) {
+  float _current_lsb = _i_max / 32768.0f;
+  float _power_lsb = _current_lsb * 25.0f;
+  uint16_t _cal_value = trunc(0.00512f / (_current_lsb * rShunt));
+  ina.setCalibration(_cal_value);
 }

@@ -30,7 +30,7 @@
 
 #ifndef MINIMALMODE
 //Settings
-#include <FS.h>           // Filesystem library for SPIFFS
+#include <FS.h>  // Filesystem library for SPIFFS
 #endif
 
 //Sum code
@@ -55,10 +55,10 @@ void setup() {
 
   //Serial output
   Serial.begin(115200);
- 
+
 
 #ifdef ENABLESCREEN
-       //Display and buttons
+  //Display and buttons
   InitDisplay();
   ShowLogo();
 #endif
@@ -82,12 +82,14 @@ void setup() {
   Shunt_Value = deviceSettings.ShuntValue;
   Shunt_Max_Current = deviceSettings.ShuntCurrent;
 
+
   //Wifi initialization
   if (deviceSettings.WfifMode) {
-    ShowText(F("Connecting to wifi"));
+    ShowText(F("Wifi init"));
 
     WiFiManager wifiManager;
     bool WifimanStatus = wifiManager.autoConnect("ESPVMON", "");
+    delay(1000);
     if (!WifimanStatus) {
       ShowText(F("Failed to connect"));
 
@@ -99,6 +101,7 @@ void setup() {
     } else {
       ShowText(F("Wifi Connected"));
     }
+
   } else {
     //precious watts been saved
     WiFi.mode(WIFI_OFF);
@@ -127,15 +130,8 @@ void setup() {
     delay(1000);
 #endif
   }
-
-
-
 #else
-  ina.begin(MaxCurrent, ShuntValue);
-  ina.setAveraging(INA226_AVG_X64);
-  ina.setSampleTime(INA226_VBUS, INA226_CONV_588US);
-  ina.setSampleTime(INA226_VSHUNT, INA226_CONV_1100US);
-  updateShunt(MaxCurrent, ShuntValue);
+ InitIna();
 #endif
 
 #ifndef MINIMALMODE
@@ -347,16 +343,16 @@ void loop() {
 #else
 
 #ifdef ENABLESCREEN
-     MainScreen();
+  MainScreen();
 #endif
 
- 
+
 #endif
 
 #ifdef ENABLESCREEN
-      display.display();
+  display.display();
 #endif
- 
+
 
 #ifndef MINIMALMODE
   FlushButtons();
