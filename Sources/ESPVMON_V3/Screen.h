@@ -275,8 +275,6 @@ void ShuntScreen() {
   if (ListValue == 0) display.fillRect(35, 33, 7, 1, WHITE);
   if (ListValue == 1) display.fillRect(120, 33, 7, 1, WHITE);
 
-
-
   //shunt amps
   display.setCursor(0, 35);
   display.print(F("Max current:"));
@@ -289,10 +287,7 @@ void ShuntScreen() {
 
   if (ListValue == 2) display.fillRect(71, 43, 7, 1, WHITE);
   if (ListValue == 3) display.fillRect(120, 43, 7, 1, WHITE);
-
-
-
-  //display.display();
+  
 }
 
 
@@ -335,7 +330,6 @@ void WifiScreen() {
     display.print(F("Signal: "));
     display.print(WiFi.RSSI()); */
   }
-  //display.display();
 }
 
 //Settings menu screen
@@ -362,7 +356,6 @@ void SettingsScreen() {
   if (ListValue == 4) display.print(F("> "));
   display.print(F("Exit"));
 
-  //display.display();
 }
 
 //Settings page for ina226 sampling

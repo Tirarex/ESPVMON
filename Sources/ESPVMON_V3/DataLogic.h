@@ -20,6 +20,14 @@ float capacity_Ah = 0.0, capacity_Wh = 0.0;
 unsigned long elapsedMillis, seconds, minutes, hours;
 unsigned long startMillis = 0;
 
+//Direct code from gyverina lib
+void updateShunt(float rShunt, float _i_max) {
+  float _current_lsb = _i_max / 32768.0f;
+  float _power_lsb = _current_lsb * 25.0f;
+  uint16_t _cal_value = trunc(0.00512f / (_current_lsb * rShunt));
+  ina.setCalibration(_cal_value);
+}
+
 
 void InitIna() {
   ina.begin(MaxCurrent, ShuntValue);
@@ -72,7 +80,7 @@ void SetInaSettings() {
     case 7:
       ina.setAveraging(INA226_AVG_X1024);
       break;
-    default: 
+    default:
       ina.setAveraging(INA226_AVG_X1);
       break;
   }
@@ -102,7 +110,7 @@ void SetInaSettings() {
     case 7:
       ina.setSampleTime(INA226_VBUS, INA226_CONV_8244US);
       break;
-    default: 
+    default:
       ina.setSampleTime(INA226_VBUS, INA226_CONV_140US);
       break;
   }
@@ -132,7 +140,7 @@ void SetInaSettings() {
     case 7:
       ina.setSampleTime(INA226_VSHUNT, INA226_CONV_8244US);
       break;
-    default: 
+    default:
       ina.setSampleTime(INA226_VSHUNT, INA226_CONV_140US);
       break;
   }
@@ -161,12 +169,4 @@ void FlushPeakData() {
 
   power_peak_high = 0;
   power_peak_low = 9999;
-}
-
-//Direct code from gyverina lib
-void updateShunt(float rShunt, float _i_max) {
-  float _current_lsb = _i_max / 32768.0f;
-  float _power_lsb = _current_lsb * 25.0f;
-  uint16_t _cal_value = trunc(0.00512f / (_current_lsb * rShunt));
-  ina.setCalibration(_cal_value);
 }

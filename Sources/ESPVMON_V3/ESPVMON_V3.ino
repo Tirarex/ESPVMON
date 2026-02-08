@@ -1,5 +1,5 @@
 //Minimal mode, only OLED Display and value measurement
-//#define MINIMALMODE
+#define MINIMALMODE
 #define ENABLESCREEN
 
 #ifdef MINIMALMODE
@@ -53,9 +53,8 @@ unsigned long lastUpdateTime = 0;
 
 void setup() {
 
-  //Serial output
-  Serial.begin(115200);
-
+  //Serial output  
+  Serial.begin(9600);
 
 #ifdef ENABLESCREEN
   //Display and buttons
@@ -144,6 +143,7 @@ void setup() {
 
 
 void loop() {
+
   //Read ina226 data
   FetchIna();
 
