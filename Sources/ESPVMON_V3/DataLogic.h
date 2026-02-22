@@ -2,8 +2,7 @@
 //INA226
 INA226 ina(0.0015f, 200.0f);
 
-double Shunt_Value = 0.0015;
-double Shunt_Max_Current = 50;
+
 // Data Variables
 float current_A = 0.0, voltage_V = 0.0, power_W = 0.0, shunt_voltage_mV = 0.0;
 
@@ -30,11 +29,11 @@ void updateShunt(float rShunt, float _i_max) {
 
 
 void InitIna() {
-  ina.begin(MaxCurrent, ShuntValue);
+  ina.begin(Shunt_Max_Current, Shunt_Value);
   ina.setAveraging(INA226_AVG_X64);
   ina.setSampleTime(INA226_VBUS, INA226_CONV_588US);
   ina.setSampleTime(INA226_VSHUNT, INA226_CONV_1100US);
-  updateShunt(MaxCurrent, ShuntValue);
+  updateShunt(Shunt_Max_Current, Shunt_Value);
 }
 
 void FetchIna() {

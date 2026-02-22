@@ -1,11 +1,10 @@
 //Minimal mode, only OLED Display and value measurement
-#define MINIMALMODE
+//#define MINIMALMODE
 #define ENABLESCREEN
 
-#ifdef MINIMALMODE
-#define MaxCurrent 20
-#define ShuntValue 0.002
-#endif
+
+double Shunt_Value = 0.0015;
+double Shunt_Max_Current = 50;
 
 #ifndef MINIMALMODE
 //Web server and updates
@@ -53,7 +52,7 @@ unsigned long lastUpdateTime = 0;
 
 void setup() {
 
-  //Serial output  
+  //Serial output
   Serial.begin(9600);
 
 #ifdef ENABLESCREEN
@@ -130,7 +129,7 @@ void setup() {
 #endif
   }
 #else
- InitIna();
+  InitIna();
 #endif
 
 #ifndef MINIMALMODE
